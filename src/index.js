@@ -1,15 +1,26 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+import { Hono } from "hono";
+import { Ollama } from "langchain/llms/ollama";
 
-export default {
-	async fetch(request, env, ctx) {
-		return new Response('Hello World!');
-	},
-};
+const app = new Hono();
+
+app.get("/", async (c) => {
+  const ollama = new Ollama({
+    baseUrl: c.env.TUNNEL,
+    model: "mixtral",
+  });
+
+	const message = c.req.query("message") || "Write a story about a mixture of experts"
+  const stream = await ollama.stream(message);
+
+  return c.stream(async (s) => {
+		for await (const chunk of stream) {
+			s.write(chunk)
+		}
+  });
+});
+
+app.onError((err, c) => {
+  return c.text(err.toString(), 500);
+});
+
+export default app;

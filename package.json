@@ -8,5 +8,9 @@
   },
   "devDependencies": {
     "wrangler": "^3.0.0"
+  },
+  "dependencies": {
+    "hono": "^3.11.7",
+    "langchain": "^0.0.208"
   }
 }
